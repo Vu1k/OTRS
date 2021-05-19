@@ -1,0 +1,8 @@
+__pychache__/
+*.swp
+.platform/*
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
