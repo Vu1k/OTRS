@@ -31,19 +31,34 @@ query = ('SELECT T.title, S.* \
          WHERE cola = "SERVICIOS IT" AND \
              correo_cliente NOT IN \
                 ("soporte@sasaconsultoria.com", \
-                "telefonia@tronex.com" \
+                "telefonia@tronex.com", \
                  "serviciosit@tronex.com") \
             AND T.title not like "%has low free space" \
-            AND YEAR(S.fecha_creacion)=2020 \
             AND agente in ("JAIME ALBERTO GONZALEZ", "ROBINSON CASTRO", "RODOLFO LEON VELEZ") \
             AND estado_ticket <> "merged"')
 
 df = pd.read_sql(query, con=cnx)
 
+years = pd.to_datetime(df['fecha_creacion']).dt.year.unique()
+year_list = [{'label': x, 'value': x} for x in years]
+
 app.layout = html.Div([
     dcc.Location(id = 'url', refresh = False),
     html.Div(id = 'page-content')
 ])
+
+@app.callback(Output('year_dropdown', 'options'),
+             [Input('year_dropdown', 'value')])
+def update_dropdown(year):
+    return year_list
+
+@app.callback(Output('month_dropdown', 'options'),
+             [Input('year_dropdown', 'value')])
+def update_dropdown(year):
+    month = pd.to_datetime(df[pd.to_datetime(df['fecha_creacion']).dt.year == int(year)]['fecha_creacion']).dt.month.unique()
+    month_list = [{'label': x, 'value': x} for x in month]
+
+    return month_list
 
 @app.callback(Output('page-content', 'children'),
             [Input('url', 'pathname')])
@@ -66,13 +81,49 @@ def update_graph(x_variable):
     return graph
 
 @app.callback(
-    Output('wc_output', 'src'),
-    [Input('min-freq-slider', 'value'),
-    Input('max-vocab-slider', 'value')]
+    Output('month_check', 'className'),
+    Output('month_dropdown', 'className'),
+    [Input('year_check', 'value'),]
 )
-def update_graph(min, max):
-    graph = my_wordcloud(df, min, max)
-    return graph
+def update_mcheck(ycheck):
+    if ycheck == ['1']:
+        return 'd-block', 'd-block'
+    else:
+        return 'd-none', 'd-none'
+
+@app.callback(
+    Output('wc_output', 'src'),
+    Output('year_dropdown', 'disabled'),
+    Output('month_dropdown', 'disabled'),
+    [Input('min-freq-slider', 'value'),
+    Input('max-vocab-slider', 'value'),
+    Input('month_dropdown', 'value'),
+    Input('year_dropdown', 'value'),
+    Input('year_check' , 'value'),
+    Input('month_check', 'value')]
+)
+def update_wc(min, max, month, year, ycheck, mcheck):
+    month_list = pd.to_datetime(df[pd.to_datetime(df['fecha_creacion']).dt.year == int(year)]['fecha_creacion']).dt.month.unique()
+    if month not in month_list:
+        month = month_list[0]
+    df_wc = df.copy()
+    try:
+        df_wc['fecha_creacion'] = pd.to_datetime(df_wc['fecha_creacion'])
+        df_wc.set_index('fecha_creacion', inplace=True)
+    except:
+        pass
+    if ycheck == ['1']:
+        if mcheck == ['1']:
+            df_wc = df_wc.loc[str(year) + '-' + str(month)].copy()
+            graph = my_wordcloud(df_wc, min, max)
+            return graph, False, False
+        else:
+            df_wc = df_wc.loc[str(year)].copy()
+            graph = my_wordcloud(df_wc, min, max)
+            return graph, False, True
+    else:
+        graph = my_wordcloud(df_wc, min, max)
+        return graph, True, True
 
 @app.callback(
     Output('rules', 'data'),
@@ -81,22 +132,31 @@ def update_graph(min, max):
 def update_rules(field):
     return show_rules(df, field)
 
+def f(row):
+    return "[{}]({})".format(row["link"])
+
 @app.callback(
-    Output('temp_label', 'children'),
+    Output('tickets', 'data'),
     [Input('rules', 'selected_rows'),
     Input('rules', 'data'),
     Input('field', 'value')]
 )
-def update_temp(rows, df_rules, field):
+def update_rules(rows, df_rules, field):
     if rows == None:
         return None
     else:
         df_rules = pd.DataFrame.from_dict(df_rules)
         serv_1 = df_rules.iloc[rows[0], 1].split("'")[1]
+        serv_2 = df_rules.iloc[rows[0], 2].split("'")[1]
         df_pivot = show_pivot(df, field)
-        print(serv_1)
-        print(df_pivot[[serv_1]])
-        return None
+        fechas = df_pivot.loc[(df_pivot[serv_1]==1) & (df_pivot[serv_2]==1)].reset_index()['fecha_creacion']
+        df_tickets = df.loc[(df.fecha_creacion.isin(fechas)) &
+                    (df.servicio.isin([serv_1, serv_2]))]
+        df_tickets['ticket_id'] = df_tickets['ticket_id'].astype(str)
+        df_tickets['link'] = 'http://servicios.tronex.com/otrs/index.pl?Action=AgentTicketZoom;TicketID=' + df_tickets['ticket_id'].copy()
+        df_tickets['link'] = df_tickets[['ticket_numero', 'link']].apply(lambda x: '[{}]({})'.format(x[0], x[1]), axis=1).copy()
+        df_tickets = df_tickets.loc[:, ['title', 'link']]
+        return df_tickets.reset_index().to_dict('records')
 
 if __name__ == '__main__':
     app.run_server(debug=True)

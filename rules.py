@@ -31,13 +31,19 @@ controls = dbc.Card([
      ])
 ])
 
-cols = ['antecedents', 'consequents', 'antecedent support', \
-       'consequent support', 'support', 'confidence']
+cols = [
+    {'name': 'antecedents', 'id': 'antecedents'},
+    {'name': 'consequents', 'id': 'consequents'},
+    {'name': 'ant sup', 'id': 'antecedent support'},
+    {'name': 'cons sup', 'id': 'consequent support'},
+    {'name': 'sup', 'id': 'support'},
+    {'name': 'conf', 'id': 'confidence'},
+]
 
 output = dbc.Container([
     dash_table.DataTable(
         id="rules",
-        columns=[{'name': x, 'id': x} for x in cols],
+        columns=cols,
         data=[],
         style_data={
             'whiteSpace': 'normal',
@@ -50,17 +56,43 @@ output = dbc.Container([
     ),
 ])
 
+cols = ['title', 'ticket_numero']
+
+tickets = dbc.Container([
+    dash_table.DataTable(
+        id="tickets",
+        columns=[{'name': 'ticket', 'id': 'link', 'presentation': 'markdown'}, 
+                 {'name': 'title', 'id': 'title'},
+],
+        data=[],
+        style_data={
+            'whiteSpace': 'normal',
+            'height': 'auto',
+        },
+        filter_action='native',
+        page_size=20,
+        export_format='csv',
+    ),
+])
+
 temp = dbc.Container(
     html.A(id='temp_label')
 )
 
 def rules_layout():
-    layout = html.Div([
-        nav,
-        controls,
-        temp,
-        output,
-    ])
+    layout = dbc.Container([
+        dbc.Row([
+            dbc.Col([nav]),
+        ]),
+        dbc.Row([
+            dbc.Col([controls]),
+        ]),
+        dbc.Row([
+            dbc.Col([output], md=8),
+            dbc.Col([tickets], md=4),
+        ], no_gutters=True),
+    ], fluid=True,
+    )
     return layout
 
 def encode(x):

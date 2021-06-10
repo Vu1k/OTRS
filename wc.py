@@ -1,6 +1,7 @@
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
+from datetime import datetime
 from wordcloud import WordCloud, STOPWORDS
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -33,14 +34,68 @@ max_vocab_slider = html.Div(
     className="p-3",
 )
 
+year_check = dbc.Container(
+    dbc.FormGroup([
+        dbc.Checklist(
+            options=[
+                {'label': 'Filtro año', 'value': '1'},
+            ],
+            value = ['1'],
+            id = 'year_check',
+            switch = True,
+        )
+    ])
+)
+
+month_check = dbc.Container(
+    dbc.FormGroup([
+        dbc.Checklist(
+            options=[
+                {'label': 'Filtro mes', 'value': '1'}
+            ],
+            value = ['1'],
+            id = 'month_check',
+            switch = True,
+        )
+    ])
+)
+
+month_list = [{'label': x, 'value': x} for x in range(1,13)]
+
+month_dropdown = dbc.Container(
+    dbc.Select(
+        id='month_dropdown',
+        value=datetime.now().month,
+    )
+)
+
+year_dropdown = dbc.Container(
+    dbc.Select(
+        id='year_dropdown',
+        value=datetime.now().year,
+    )
+)
+
 controls = dbc.Card(
     [
        dbc.Container([
-            dbc.FormGroup([dbc.Label("Minimum frequency:"), min_freq_slider]),
-            dbc.FormGroup(
+           dbc.FormGroup([dbc.Label("Minimum frequency:"), min_freq_slider]),
+           dbc.FormGroup(
                 [dbc.Label("Maximum number of words:"), max_vocab_slider]
             ),
-        ]),
+           dbc.Row([
+               dbc.Col(year_check),
+               dbc.Col(month_check)
+           ]),
+           dbc.Row([
+               dbc.Col(
+                   dbc.FormGroup([year_dropdown]),
+               ),
+               dbc.Col(
+                   dbc.FormGroup([month_dropdown]),
+               )
+           ])
+         ]),
     ],
 )
 
@@ -60,10 +115,10 @@ def wc_layout():
     ], fluid=True)
     return layout
 
-def my_wordcloud(df, min_freq, max_vocab):
+def my_wordcloud(df_wc, min_freq, max_vocab):
     comment_words = ''
     stopwords = set(['con', 'el', 'de', 'la', 'y', 'para', 'por', 'a', 'no', 'del', 'sin', 'not', 'in', 're', 'se', 'rv', 'lo', 'las', 'en'])
-    for val in df.title:
+    for val in df_wc.title:
     # typecaste each val to string 
         val = str(val)
     # split the value 
