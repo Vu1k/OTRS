@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from fig import fig_to_uri
 from navbar import Navbar
 
-nav = Navbar() 
+nav = Navbar()
 
 min_freq_slider = html.Div(
     dcc.Slider(

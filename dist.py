@@ -2,7 +2,7 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
-from dash.dependencies import Output, Input
+from datetime import datetime
 import pandas as pd
 from navbar import Navbar
 import matplotlib.pyplot as plt
@@ -19,6 +19,48 @@ options=[
     {"label": 'nuevo_cerrado', "value": 'nuevo_cerrado'},
 ]
 
+year_check = dbc.Container(
+    dbc.FormGroup([
+        dbc.Checklist(
+            options=[
+                {'label': 'Filtro año', 'value': '1'},
+            ],
+            value = ['1'],
+            id = 'year_check_dist',
+            switch = True,
+        )
+    ])
+)
+
+month_check = dbc.Container(
+    dbc.FormGroup([
+        dbc.Checklist(
+            options=[
+                {'label': 'Filtro mes', 'value': '1'}
+            ],
+            value = ['1'],
+            id = 'month_check_dist',
+            switch = True,
+        )
+    ])
+)
+
+month_list = [{'label': x, 'value': x} for x in range(1,13)]
+
+month_dropdown = dbc.Container(
+    dbc.Select(
+        id='month_dropdown_dist',
+        value=datetime.now().month,
+    )
+)
+
+year_dropdown = dbc.Container(
+    dbc.Select(
+        id='year_dropdown_dist',
+        value=datetime.now().year,
+    )
+)
+
 controls = dbc.Card([
     dbc.Container([
             dbc.FormGroup(
@@ -31,7 +73,18 @@ controls = dbc.Card([
                     ),
                 ], id="x-dropdown",
              ),
-
+           dbc.Row([
+               dbc.Col(year_check),
+               dbc.Col(month_check)
+           ]),
+           dbc.Row([
+               dbc.Col(
+                   dbc.FormGroup([year_dropdown]),
+               ),
+               dbc.Col(
+                   dbc.FormGroup([month_dropdown]),
+               )
+           ])
     ])
 ])
 
