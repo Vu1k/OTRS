@@ -17,11 +17,11 @@ application = app.server
 
 app.config.suppress_callback_exceptions = True
 
-otrs_user = 'usr_tronexotrs'
-otrs_pass = 'usr$otrs#56aN7Rt*mp1'
+otrs_user = 'dbadminotrs'
+otrs_pass = 'jacsos-tygwuv-Dipky6'
 
 cnx = mysql.connector.connect(user=otrs_user, password=otrs_pass,
-                              host='pantermysql.cwqmr5tsjjh9.us-west-2.rds.amazonaws.com',
+                              host='otrs.cluster-ro-cwqmr5tsjjh9.us-west-2.rds.amazonaws.com',
                               database='tronex.otrs')
 
 query = ('SELECT T.title, S.* \
@@ -260,4 +260,4 @@ def update_rules(rows, df_rules, field):
         return df_tickets.reset_index().to_dict('records')
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, host='0.0.0.0')
