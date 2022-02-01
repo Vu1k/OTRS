@@ -10,6 +10,14 @@ from navbar import Navbar
 
 nav = Navbar()
 
+stop_words = html.Div(
+    dcc.Textarea(
+        placeholder = 'Escriba las palabras a excluir separadas por coma',
+        value='',
+        style = {'width': '100%', 'height': 50},
+    )
+)
+
 min_freq_slider = html.Div(
     dcc.Slider(
         id="min-freq-slider",
@@ -94,7 +102,10 @@ controls = dbc.Card(
                dbc.Col(
                    dbc.FormGroup([month_dropdown]),
                )
-           ])
+           ]),
+           dbc.Row([
+                dbc.Col(stop_words),
+           ]),
          ]),
     ],
 )
