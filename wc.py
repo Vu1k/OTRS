@@ -1,6 +1,7 @@
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
+import dash_table
 from datetime import datetime
 from wordcloud import WordCloud, STOPWORDS
 import pandas as pd
@@ -9,14 +10,6 @@ from fig import fig_to_uri
 from navbar import Navbar
 
 nav = Navbar()
-
-stop_words = html.Div(
-    dcc.Textarea(
-        placeholder = 'Escriba las palabras a excluir separadas por coma',
-        value='',
-        style = {'width': '100%', 'height': 50},
-    )
-)
 
 min_freq_slider = html.Div(
     dcc.Slider(
@@ -84,6 +77,37 @@ year_dropdown = dbc.Container(
     )
 )
 
+stop_words = html.Div(
+    dcc.Textarea(
+        id = 'stop_words',
+        placeholder = 'Escriba las palabras a excluir separadas por coma',
+        value='',
+        style = {'width': '100%', 'height': 50},
+    )
+)
+
+stop_words_button = dbc.Button(
+    'Enviar',
+    id = 'stop_words_button',
+    className = 'me-2',
+)
+
+sw_query = dbc.Container(
+    dcc.Input(
+        id = 'sw_query',
+        placeholder = 'Palabra para filtrar',
+        type = 'text',
+        value = '',
+        style = {'width': '100%', 'height': 50},
+    )
+)
+
+sw_button = dbc.Button(
+    'Enviar',
+    id = 'sw_button',
+    className = 'me-2',
+)
+
 controls = dbc.Card(
     [
        dbc.Container([
@@ -104,7 +128,34 @@ controls = dbc.Card(
                )
            ]),
            dbc.Row([
-                dbc.Col(stop_words),
+               dbc.Label('Ingrese las palabras excluidas separadas por coma'),
+           ]),
+           dbc.Row([
+               dbc.Col(stop_words),
+           ]),
+           dbc.Row([
+               html.Br(),
+           ]),
+           dbc.Row([
+                dbc.Col(stop_words_button),
+           ]),
+           dbc.Row([
+               html.Br(),
+           ]),
+           dbc.Row([
+               dbc.Label('Ingrese el término que desea buscar en los tickets:'),
+           ]),
+           dbc.Row([
+               dbc.Col(sw_query),
+           ]),
+           dbc.Row([
+               html.Br(),
+           ]),
+           dbc.Row([
+                dbc.Col(sw_button),
+                dbc.Col(dbc.Label(
+                    id='ticket_qty', 
+                    color='success'))
            ]),
          ]),
     ],
@@ -112,6 +163,32 @@ controls = dbc.Card(
 
 output = dbc.Container([
     dbc.Card(dbc.CardImg(id='wc_output'))
+])
+
+output1 = dbc.Container([
+    dbc.Card(dbc.CardImg(id='wc_output1'))
+])
+
+cols = [
+    {'name': 'ticket', 'id': 'link', 'presentation': 'markdown'},
+    {'name': 'title', 'id': 'title'},
+    {'name': 'servicio', 'id': 'servicio'},
+]
+
+output_table = dbc.Container([
+    dash_table.DataTable(
+        id="wc_table",
+        columns=cols,
+        data=[],
+        style_data={
+            'whiteSpace': 'normal',
+            'height': 'auto',
+        },
+        filter_action='native',
+        page_size=20,
+        export_format='csv',
+        row_selectable=False,
+    ),
 ])
 
 def wc_layout():
@@ -122,26 +199,30 @@ def wc_layout():
         dbc.Row([
             dbc.Col(controls, md=4),
             dbc.Col(output, md=8)
-        ], no_gutters=True)
+        ], no_gutters=True),
+        dbc.Row(
+            dbc.Col(output_table, md=12)
+        )
     ], fluid=True)
     return layout
 
-def my_wordcloud(df_wc, min_freq, max_vocab):
+def my_wordcloud(df_wc, min_freq, max_vocab, sw_query):
     comment_words = ''
     stopwords = set(['con', 'el', 'de', 'la', 'y', 'para', 'por', 'a', 'no', 'del', 'sin', 'not', 'in', 're', 'se', 'rv', 'lo', 'las', 'en'])
+    stopwordsfinal = stopwords.union(sw_query)
     for val in df_wc.title:
-    # typecaste each val to string 
+    # typecaste each val to string
         val = str(val)
-    # split the value 
+    # split the value
         tokens = val.split()
         tokens = [i.strip() for i in tokens]
-    # Converts each token into lowercase 
+    # Converts each token into lowercase
         for i in range(len(tokens)):
             tokens[i] = tokens[i].lower()
         comment_words += " ".join(tokens)+" "
     wordcloud = WordCloud(width = 800, height = 800,
                     background_color ='white',
-                    stopwords = stopwords,
+                    stopwords = stopwordsfinal,
                     min_font_size = 10)
 
     # filter frequencies based on min_freq and max_vocab
@@ -167,5 +248,3 @@ def my_wordcloud(df_wc, min_freq, max_vocab):
     out_url = fig_to_uri(plt)
 
     return out_url
-
-

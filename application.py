@@ -1,7 +1,7 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 from wc import wc_layout, my_wordcloud
 from dist import dist_layout, show_distribution
@@ -9,6 +9,7 @@ from rules import rules_layout, show_pivot, show_rules
 from homepage import Homepage
 import mysql.connector
 import pandas as pd
+import plotly.express as px
 from flask import Flask
 
 server = Flask(__name__)
@@ -165,16 +166,23 @@ def update_mcheck(ycheck):
 
 @app.callback(
     Output('wc_output', 'src'),
+    Output('wc_table', 'data'),
     Output('year_dropdown', 'disabled'),
     Output('month_dropdown', 'disabled'),
+    Output('ticket_qty', 'children'),
     [Input('min-freq-slider', 'value'),
     Input('max-vocab-slider', 'value'),
     Input('month_dropdown', 'value'),
     Input('year_dropdown', 'value'),
     Input('year_check' , 'value'),
-    Input('month_check', 'value')]
+    Input('month_check', 'value'),
+    Input('stop_words_button', 'n_clicks'),
+    Input('sw_button', 'n_clicks')],
+    State('stop_words', 'value'),
+    State('sw_query', 'value')
 )
-def update_wc(min, max, month, year, ycheck, mcheck):
+def update_wc(min, max, month, year, ycheck, mcheck, stop_words_button,sw_button, stop_words, sw_query):
+    sw = set(stop_words.replace(' ', '').split(','))
     month_list = pd.to_datetime(df[pd.to_datetime(df['fecha_creacion']).dt.year == int(year)]['fecha_creacion']).dt.month.unique()
     if month not in month_list:
         month = month_list[0]
@@ -187,15 +195,35 @@ def update_wc(min, max, month, year, ycheck, mcheck):
     if ycheck == ['1']:
         if mcheck == ['1']:
             df_wc = df_wc.loc[str(year) + '-' + str(month)].copy()
-            graph = my_wordcloud(df_wc, min, max)
-            return graph, False, False
+            graph = my_wordcloud(df_wc, min, max, sw)
+            sw_table = wc_table_out(df_wc, sw_query)
+            ticket_qty = 'Encontrados ' + str(len(sw_table)) + ' tickets'
+
+            return graph, sw_table, False, False, ticket_qty
         else:
             df_wc = df_wc.loc[str(year)].copy()
-            graph = my_wordcloud(df_wc, min, max)
-            return graph, False, True
+            graph = my_wordcloud(df_wc, min, max, sw)
+            sw_table = wc_table_out(df_wc, sw_query)
+            ticket_qty = 'Encontrados ' + str(len(sw_table)) + ' tickets'
+
+            return graph, sw_table, False, True, ticket_qty
     else:
-        graph = my_wordcloud(df_wc, min, max)
-        return graph, True, True
+        graph = my_wordcloud(df_wc, min, max, sw)
+        sw_table = wc_table_out(df_wc, sw_query)
+        ticket_qty = 'Encontrados ' + str(len(sw_table)) + ' tickets'
+
+        return graph, sw_table, True, True, ticket_qty
+
+def wc_table_out(df_wc, sw_query):
+            sw_table = df_wc.loc[df_wc['title'].str.contains(sw_query, case=False), :]
+            sw_table = sw_table[['title', 'ticket_id', 'ticket_numero', 'servicio']]
+            sw_table['ticket_id'] = sw_table['ticket_id'].astype(str)
+            sw_table['link'] = 'http://servicios.tronex.com/otrs/index.pl?Action=AgentTicketZoom;TicketID=' + sw_table['ticket_id'].copy()
+            sw_table['link'] = sw_table[['ticket_numero', 'link']].apply(lambda x: '[{}]({})'.format(x[0], x[1]), axis=1).copy()
+            sw_table = sw_table[['title', 'servicio', 'link']]
+            sw_table = sw_table.reset_index().to_dict('records')
+
+            return sw_table
 
 @app.callback(
     Output('rules', 'data'),
