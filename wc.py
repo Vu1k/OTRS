@@ -1,3 +1,4 @@
+from turtle import ht
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
@@ -12,9 +13,9 @@ nav = Navbar()
 
 stop_words = html.Div(
     dcc.Textarea(
-        placeholder = 'Escriba las palabras a excluir separadas por coma',
+        placeholder='Escriba las palabras a excluir separadas por coma',
         value='',
-        style = {'width': '100%', 'height': 50},
+        style={'width': '100%', 'height': 50},
     )
 )
 
@@ -48,9 +49,9 @@ year_check = dbc.Container(
             options=[
                 {'label': 'Filtro año', 'value': '1'},
             ],
-            value = ['1'],
-            id = 'year_check',
-            switch = True,
+            value=['1'],
+            id='year_check',
+            switch=True,
         )
     ])
 )
@@ -61,14 +62,14 @@ month_check = dbc.Container(
             options=[
                 {'label': 'Filtro mes', 'value': '1'}
             ],
-            value = ['1'],
-            id = 'month_check',
-            switch = True,
+            value=['1'],
+            id='month_check',
+            switch=True,
         )
     ])
 )
 
-month_list = [{'label': x, 'value': x} for x in range(1,13)]
+month_list = [{'label': x, 'value': x} for x in range(1, 13)]
 
 month_dropdown = dbc.Container(
     dbc.Select(
@@ -86,27 +87,27 @@ year_dropdown = dbc.Container(
 
 controls = dbc.Card(
     [
-       dbc.Container([
-           dbc.FormGroup([dbc.Label("Minimum frequency:"), min_freq_slider]),
-           dbc.FormGroup(
+        dbc.Container([
+            dbc.FormGroup([dbc.Label("Minimum frequency:"), min_freq_slider]),
+            dbc.FormGroup(
                 [dbc.Label("Maximum number of words:"), max_vocab_slider]
             ),
-           dbc.Row([
-               dbc.Col(year_check),
-               dbc.Col(month_check)
-           ]),
-           dbc.Row([
-               dbc.Col(
-                   dbc.FormGroup([year_dropdown]),
-               ),
-               dbc.Col(
-                   dbc.FormGroup([month_dropdown]),
-               )
-           ]),
-           dbc.Row([
+            dbc.Row([
+                dbc.Col(year_check),
+                dbc.Col(month_check)
+            ]),
+            dbc.Row([
+                dbc.Col(
+                    dbc.FormGroup([year_dropdown]),
+                ),
+                dbc.Col(
+                    dbc.FormGroup([month_dropdown]),
+                )
+            ]),
+            dbc.Row([
                 dbc.Col(stop_words),
-           ]),
-         ]),
+            ]),
+        ]),
     ],
 )
 
@@ -114,35 +115,61 @@ output = dbc.Container([
     dbc.Card(dbc.CardImg(id='wc_output'))
 ])
 
+
 def wc_layout():
     layout = dbc.Container([
         dbc.Row([
             nav,
-         ]),
+        ]),
         dbc.Row([
             dbc.Col(controls, md=4),
             dbc.Col(output, md=8)
+        ], no_gutters=True),
+
+        dbc.Row([
+            dbc.Col([
+                dbc.Row([
+                    dcc.Textarea(
+                        id='bars_wc_text',
+                        value='mouse',
+                    ),
+                ]),
+
+                dbc.Row([
+                    dbc.Button('Ver servicios', id='bars_wc_button',
+                               color='primary'),
+                ]),
+            ]),
+
+            dbc.Col([
+                dcc.Graph(
+                    id='bars_wc',
+                    figure={},
+                )
+            ]),
         ], no_gutters=True)
     ], fluid=True)
     return layout
 
+
 def my_wordcloud(df_wc, min_freq, max_vocab):
     comment_words = ''
-    stopwords = set(['con', 'el', 'de', 'la', 'y', 'para', 'por', 'a', 'no', 'del', 'sin', 'not', 'in', 're', 'se', 'rv', 'lo', 'las', 'en'])
+    stopwords = set(['con', 'el', 'de', 'la', 'y', 'para', 'por', 'a', 'no',
+                    'del', 'sin', 'not', 'in', 're', 'se', 'rv', 'lo', 'las', 'en'])
     for val in df_wc.title:
-    # typecaste each val to string 
+        # typecaste each val to string
         val = str(val)
-    # split the value 
+    # split the value
         tokens = val.split()
         tokens = [i.strip() for i in tokens]
-    # Converts each token into lowercase 
+    # Converts each token into lowercase
         for i in range(len(tokens)):
             tokens[i] = tokens[i].lower()
         comment_words += " ".join(tokens)+" "
-    wordcloud = WordCloud(width = 800, height = 800,
-                    background_color ='white',
-                    stopwords = stopwords,
-                    min_font_size = 10)
+    wordcloud = WordCloud(width=800, height=800,
+                          background_color='white',
+                          stopwords=stopwords,
+                          min_font_size=10)
 
     # filter frequencies based on min_freq and max_vocab
     sorted_frequencies = sorted(
@@ -167,5 +194,3 @@ def my_wordcloud(df_wc, min_freq, max_vocab):
     out_url = fig_to_uri(plt)
 
     return out_url
-
-
