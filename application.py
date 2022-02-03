@@ -239,17 +239,16 @@ def update_wc(min, max, month, year, ycheck, mcheck):
 # -------------------------------Bar plot WC----------------------------------
 @app.callback(
     Output('bars_wc', 'figure'),
-    [Input('bars_wc_button', 'n_clicks'),
+    [#Input('bars_wc_button', 'n_clicks'),
      Input('bars_wc_text', 'value'),
      Input('month_dropdown', 'value'),
      Input('year_dropdown', 'value'),
      Input('year_check', 'value'),
      Input('month_check', 'value')]
 )
-def plot_bars_wc_layout(btn, txt, m , y, yc , mc):
-    if btn is not None:
-        graph = build_plot_wc(txt, m, y, yc, mc, df)
-        return graph
+def plot_bars_wc_layout(txt, m , y, yc , mc):
+    graph = build_plot_wc(txt, m, y, yc, mc, df)
+    return graph
 
 #------------------------------------------------------------------------------
 
@@ -323,4 +322,4 @@ def update_rules(rows, df_rules, field):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)#, host='0.0.0.0')
+    app.run_server(debug=True, host='0.0.0.0')

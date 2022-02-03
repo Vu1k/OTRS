@@ -37,11 +37,9 @@ def plot_bars(df: pd.DataFrame) -> px.bar:
         df,
         x='servicio',
         y='cantidad',
-        color='servicio',
-        barmode='group'
     ).update_layout(
         font={
-            'size': 7,
+            'size': 11,
         },
     )
     return fig

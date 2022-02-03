@@ -1,4 +1,4 @@
-from turtle import ht
+#from turtle import ht
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
@@ -131,22 +131,22 @@ def wc_layout():
                 dbc.Row([
                     dcc.Textarea(
                         id='bars_wc_text',
-                        value='mouse',
+                        value='',
                     ),
                 ]),
 
-                dbc.Row([
-                    dbc.Button('Ver servicios', id='bars_wc_button',
-                               color='primary'),
-                ]),
-            ]),
+                # dbc.Row([
+                #     dbc.Button('Ver servicios', id='bars_wc_button',
+                #                color='primary', n_clicks=0)
+                # ]),
+            ], md=3),
 
             dbc.Col([
                 dcc.Graph(
                     id='bars_wc',
                     figure={},
                 )
-            ]),
+            ], md=9),
         ], no_gutters=True)
     ], fluid=True)
     return layout
