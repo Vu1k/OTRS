@@ -269,14 +269,14 @@ def wc_table_out(df_wc, sw_query):
 # -------------------------------Bar plot WC----------------------------------
 @app.callback(
     Output('bars_wc', 'figure'),
-    [#Input('bars_wc_button', 'n_clicks'),
-     Input('bars_wc_text', 'value'),
+    [Input('bars_wc_button', 'n_clicks'),
      Input('month_dropdown', 'value'),
      Input('year_dropdown', 'value'),
      Input('year_check', 'value'),
-     Input('month_check', 'value')]
+     Input('month_check', 'value')],
+     State('bars_wc_text', 'value')
 )
-def plot_bars_wc_layout(txt, m , y, yc , mc):
+def plot_bars_wc_layout(bars_wc_button, m , y, yc , mc, txt):
     graph = build_plot_wc(txt, m, y, yc, mc, df)
     return graph
 

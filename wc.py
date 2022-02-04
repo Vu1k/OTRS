@@ -119,7 +119,13 @@ bars_wc_text = dbc.Container(
     )
 )
 
-controls = dbc.Card(
+bars_wc_button = dbc.Button(
+    'Enviar',
+    id = 'bars_wc_button',
+    className = 'me-2',
+)
+
+controls_wc = dbc.Card(
     [
         dbc.Container([
             dbc.FormGroup([dbc.Label("Minimum frequency:"), min_freq_slider]),
@@ -147,6 +153,13 @@ controls = dbc.Card(
            dbc.Row([
                 dbc.Col(stop_words_button),
            ]),
+         ]),
+    ],
+)
+
+controls_qy = dbc.Card(
+    [
+        dbc.Container([
            dbc.Row([
                 dbc.Label('Ingrese el término que desea buscar en los tickets:'),
            ]),
@@ -159,11 +172,20 @@ controls = dbc.Card(
                     id='ticket_qty',
                     color='success'))
            ]),
+        ]),
+    ])
+
+controls_bar = dbc.Card(
+    [
+        dbc.Container([
            dbc.Row([
                dbc.Label('Ingrese el término para consultar los servicios'),
            ]),
            dbc.Row([
                dbc.Col(bars_wc_text),
+           ]),
+           dbc.Row([
+               dbc.Col(bars_wc_button),
            ]),
          ]),
     ],
@@ -193,7 +215,7 @@ output_table = dbc.Container([
             'height': 'auto',
         },
         filter_action='native',
-        page_size=20,
+        page_size=10,
         export_format='csv',
         row_selectable=False,
     ),
@@ -206,21 +228,19 @@ def wc_layout():
         ]),
 
         dbc.Row([
-            dbc.Col(controls, md=4),
+            dbc.Col(controls_wc, md=4),
             dbc.Col(output, md=8)
         ]),
 
-        dbc.Row(
-            dbc.Col(output_table, md=12)
-        ),
+        dbc.Row([
+            dbc.Col(controls_qy, md=4),
+            dbc.Col(output_table, md=8)
+        ]),
 
-        dbc.Row(
-            dbc.Col(dcc.Graph(
-                        id='bars_wc',
-                        figure={},
-                        ), md=12
-                    ),
-        )
+        dbc.Row([
+            dbc.Col(controls_bar, md=4),
+            dbc.Col(dcc.Graph(id='bars_wc', figure={}), md=8)
+        ]),
     ], fluid=True)
     return layout
 
