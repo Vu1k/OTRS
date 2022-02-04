@@ -1,3 +1,4 @@
+#from turtle import ht
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
@@ -41,9 +42,9 @@ year_check = dbc.Container(
             options=[
                 {'label': 'Filtro año', 'value': '1'},
             ],
-            value = ['1'],
-            id = 'year_check',
-            switch = True,
+            value=['1'],
+            id='year_check',
+            switch=True,
         )
     ])
 )
@@ -54,14 +55,14 @@ month_check = dbc.Container(
             options=[
                 {'label': 'Filtro mes', 'value': '1'}
             ],
-            value = ['1'],
-            id = 'month_check',
-            switch = True,
+            value=['1'],
+            id='month_check',
+            switch=True,
         )
     ])
 )
 
-month_list = [{'label': x, 'value': x} for x in range(1,13)]
+month_list = [{'label': x, 'value': x} for x in range(1, 13)]
 
 month_dropdown = dbc.Container(
     dbc.Select(
@@ -108,11 +109,21 @@ sw_button = dbc.Button(
     className = 'me-2',
 )
 
+bars_wc_text = dbc.Container(
+    dcc.Input(
+        id = 'bars_wc_text',
+        placeholder = 'Término para buscar servicios',
+        type = 'text',
+        value = '',
+        style = {'width': '100%', 'height': 50},
+    )
+)
+
 controls = dbc.Card(
     [
-       dbc.Container([
-           dbc.FormGroup([dbc.Label("Minimum frequency:"), min_freq_slider]),
-           dbc.FormGroup(
+        dbc.Container([
+            dbc.FormGroup([dbc.Label("Minimum frequency:"), min_freq_slider]),
+            dbc.FormGroup(
                 [dbc.Label("Maximum number of words:"), max_vocab_slider]
             ),
            dbc.Row([
@@ -134,28 +145,25 @@ controls = dbc.Card(
                dbc.Col(stop_words),
            ]),
            dbc.Row([
-               html.Br(),
-           ]),
-           dbc.Row([
                 dbc.Col(stop_words_button),
            ]),
            dbc.Row([
-               html.Br(),
+                dbc.Label('Ingrese el término que desea buscar en los tickets:'),
            ]),
            dbc.Row([
-               dbc.Label('Ingrese el término que desea buscar en los tickets:'),
-           ]),
-           dbc.Row([
-               dbc.Col(sw_query),
-           ]),
-           dbc.Row([
-               html.Br(),
+                dbc.Col(sw_query),
            ]),
            dbc.Row([
                 dbc.Col(sw_button),
                 dbc.Col(dbc.Label(
-                    id='ticket_qty', 
+                    id='ticket_qty',
                     color='success'))
+           ]),
+           dbc.Row([
+               dbc.Label('Ingrese el término para consultar los servicios'),
+           ]),
+           dbc.Row([
+               dbc.Col(bars_wc_text),
            ]),
          ]),
     ],
@@ -195,23 +203,35 @@ def wc_layout():
     layout = dbc.Container([
         dbc.Row([
             nav,
-         ]),
+        ]),
+
         dbc.Row([
             dbc.Col(controls, md=4),
             dbc.Col(output, md=8)
-        ], no_gutters=True),
+        ]),
+
         dbc.Row(
             dbc.Col(output_table, md=12)
+        ),
+
+        dbc.Row(
+            dbc.Col(dcc.Graph(
+                        id='bars_wc',
+                        figure={},
+                        ), md=12
+                    ),
         )
     ], fluid=True)
     return layout
 
 def my_wordcloud(df_wc, min_freq, max_vocab, sw_query):
     comment_words = ''
-    stopwords = set(['con', 'el', 'de', 'la', 'y', 'para', 'por', 'a', 'no', 'del', 'sin', 'not', 'in', 're', 'se', 'rv', 'lo', 'las', 'en'])
+    stopwords = set(['con', 'el', 'de', 'la', 'y', 'para', 'por', 'a', 'no',
+                    'del', 'sin', 'not', 'in', 're', 'se', 'rv', 'lo', 'las', 'en'])
     stopwordsfinal = stopwords.union(sw_query)
     for val in df_wc.title:
-    # typecaste each val to string
+        # typecaste each val to string
+
         val = str(val)
     # split the value
         tokens = val.split()
@@ -220,6 +240,7 @@ def my_wordcloud(df_wc, min_freq, max_vocab, sw_query):
         for i in range(len(tokens)):
             tokens[i] = tokens[i].lower()
         comment_words += " ".join(tokens)+" "
+
     wordcloud = WordCloud(width = 800, height = 800,
                     background_color ='white',
                     stopwords = stopwordsfinal,
