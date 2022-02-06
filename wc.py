@@ -17,9 +17,9 @@ min_freq_slider = html.Div(
         id="min-freq-slider",
         min=1,
         max=50,
-        step=1,
+        step=10,
         value=15,
-        marks={1: "1", **{i: str(i) for i in range(5, 51, 5)}},
+        marks={1: "1", **{i: str(i) for i in range(10, 51, 10)}},
     ),
     className="p-3 mb-2",
 )
@@ -28,10 +28,10 @@ max_vocab_slider = html.Div(
     dcc.Slider(
         id="max-vocab-slider",
         min=1,
-        max=300,
-        step=1,
-        value=100,
-        marks={1: "1", **{i: str(i) for i in range(30, 301, 30)}},
+        max=50,
+        step=10,
+        value=15,
+        marks={1: "1", **{i: str(i) for i in range(10, 51, 10)}},
     ),
     className="p-3",
 )
@@ -90,13 +90,14 @@ stop_words = html.Div(
 stop_words_button = dbc.Button(
     'Enviar',
     id = 'stop_words_button',
-    className = 'me-2',
+    color='dark',
+    className = 'me-1',
 )
 
 sw_query = dbc.Container(
     dcc.Input(
         id = 'sw_query',
-        placeholder = 'Palabra para filtrar',
+        placeholder = 'Escriba una palabra para filtrar por el título de los tickets',
         type = 'text',
         value = '',
         style = {'width': '100%', 'height': 50},
@@ -106,13 +107,14 @@ sw_query = dbc.Container(
 sw_button = dbc.Button(
     'Enviar',
     id = 'sw_button',
-    className = 'me-2',
+    color='dark',
+    className = 'me-1',
 )
 
 bars_wc_text = dbc.Container(
     dcc.Input(
         id = 'bars_wc_text',
-        placeholder = 'Término para buscar servicios',
+        placeholder = 'Término para buscar servicios asociados',
         type = 'text',
         value = '',
         style = {'width': '100%', 'height': 50},
@@ -122,82 +124,53 @@ bars_wc_text = dbc.Container(
 bars_wc_button = dbc.Button(
     'Enviar',
     id = 'bars_wc_button',
-    className = 'me-2',
-)
-
-controls_wc = dbc.Card(
-    [
-        dbc.Container([
-            dbc.FormGroup([dbc.Label("Minimum frequency:"), min_freq_slider]),
-            dbc.FormGroup(
-                [dbc.Label("Maximum number of words:"), max_vocab_slider]
-            ),
-           dbc.Row([
-               dbc.Col(year_check),
-               dbc.Col(month_check)
-           ]),
-           dbc.Row([
-               dbc.Col(
-                   dbc.FormGroup([year_dropdown]),
-               ),
-               dbc.Col(
-                   dbc.FormGroup([month_dropdown]),
-               )
-           ]),
-           dbc.Row([
-               dbc.Label('Ingrese las palabras excluidas separadas por coma'),
-           ]),
-           dbc.Row([
-               dbc.Col(stop_words),
-           ]),
-           dbc.Row([
-                dbc.Col(stop_words_button),
-           ]),
-         ]),
-    ],
-)
-
-controls_qy = dbc.Card(
-    [
-        dbc.Container([
-           dbc.Row([
-                dbc.Label('Ingrese el término que desea buscar en los tickets:'),
-           ]),
-           dbc.Row([
-                dbc.Col(sw_query),
-           ]),
-           dbc.Row([
-                dbc.Col(sw_button),
-                dbc.Col(dbc.Label(
-                    id='ticket_qty',
-                    color='success'))
-           ]),
-        ]),
-    ])
-
-controls_bar = dbc.Card(
-    [
-        dbc.Container([
-           dbc.Row([
-               dbc.Label('Ingrese el término para consultar los servicios'),
-           ]),
-           dbc.Row([
-               dbc.Col(bars_wc_text),
-           ]),
-           dbc.Row([
-               dbc.Col(bars_wc_button),
-           ]),
-         ]),
-    ],
+    color='dark',
+    className = 'me-1',
 )
 
 output = dbc.Container([
     dbc.Card(dbc.CardImg(id='wc_output'))
 ])
 
-output1 = dbc.Container([
-    dbc.Card(dbc.CardImg(id='wc_output1'))
-])
+controls_wc = dbc.Card(
+    [
+        dbc.CardHeader([
+            dbc.Row([
+                html.H4('Palabras a excluir'),
+            ]),
+            dbc.Row([
+                dbc.Col(stop_words, md=9),
+                dbc.Col(stop_words_button),
+            ]),
+        ]),
+        dbc.CardBody(
+            dbc.Row(output),
+        ),
+        dbc.CardFooter([
+            dbc.Row([
+                dbc.Col(
+                    dbc.FormGroup([dbc.Label("Minimum frequency:"), min_freq_slider]), md=6
+                ),
+                dbc.Col(
+                    dbc.FormGroup(
+                        [dbc.Label("Maximum number of words:"), max_vocab_slider]
+                        ), md=6,
+                ),
+            ]),
+            dbc.Row([
+                dbc.Col(year_check),
+                dbc.Col(
+                    dbc.FormGroup([year_dropdown]),
+                ),
+            ]),
+            dbc.Row([
+                dbc.Col(month_check),
+                dbc.Col(
+                    dbc.FormGroup([month_dropdown]),
+                )
+            ]),
+          ]),
+    ], color='dark', outline=True, style={'width':'95%'})
 
 cols = [
     {'name': 'ticket', 'id': 'link', 'presentation': 'markdown'},
@@ -221,25 +194,57 @@ output_table = dbc.Container([
     ),
 ])
 
+controls_qy = dbc.Card([
+        dbc.CardHeader([
+            dbc.Row([
+                html.H4('Busqueda de tickets'),
+            ]),
+            dbc.Row([
+                dbc.Col(sw_query),
+                dbc.Col(sw_button),
+            ]),
+        ]),
+        dbc.CardBody([
+            dbc.Row([
+                dbc.Col(dbc.Alert(
+                    id='ticket_qty',
+                    color='light'))
+                ]),
+            dbc.Row([
+                dbc.Col(output_table),
+            ]),
+            dbc.Row([
+                dbc.Col(dcc.Graph(id='bars_wc', figure={}))
+            ])
+        ]),
+    ], color='dark', outline=True, style={'width':'95%'}),
+
+controls_fg = dbc.Card([
+        dbc.CardHeader([
+            dbc.Row([
+                html.H4('Consulta de servicios'),
+            ]),
+            dbc.Row([
+                dbc.Col(bars_wc_text),
+                dbc.Col(bars_wc_button),
+            ]),
+        ]),
+        dbc.CardBody([
+                dbc.Col(dcc.Graph(id='bars_wc', figure={}))
+        ]),
+    ], color='dark', outline=True, style={'width':'95%'}),
+
+
 def wc_layout():
     layout = dbc.Container([
         dbc.Row([
             nav,
         ]),
-
         dbc.Row([
             dbc.Col(controls_wc, md=4),
-            dbc.Col(output, md=8)
-        ]),
-
-        dbc.Row([
-            dbc.Col(controls_qy, md=4),
-            dbc.Col(output_table, md=8)
-        ]),
-
-        dbc.Row([
-            dbc.Col(controls_bar, md=4),
-            dbc.Col(dcc.Graph(id='bars_wc', figure={}), md=8)
+            dbc.Col([
+                dbc.Row(controls_qy),
+            ], md=8),
         ]),
     ], fluid=True)
     return layout
@@ -261,7 +266,7 @@ def my_wordcloud(df_wc, min_freq, max_vocab, sw_query):
             tokens[i] = tokens[i].lower()
         comment_words += " ".join(tokens)+" "
 
-    wordcloud = WordCloud(width = 800, height = 800,
+    wordcloud = WordCloud(width = 600, height = 600,
                     background_color ='white',
                     stopwords = stopwordsfinal,
                     min_font_size = 10)
@@ -282,8 +287,9 @@ def my_wordcloud(df_wc, min_freq, max_vocab, sw_query):
 
 #   wc.generate_from_frequencies(frequencies).to_image()
 
-    plt.figure()
-    plt.imshow(wordcloud.generate(comment_words), interpolation='bilinear')
+    plt.figure(figsize=(20,20))
+    plt.imshow(wordcloud.generate(comment_words), interpolation='bilinear', aspect='auto')
+    plt.tight_layout(pad=5)
     plt.axis('off')
 
     out_url = fig_to_uri(plt)

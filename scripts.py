@@ -71,26 +71,30 @@ def build_plot_wc(word: str, month: int, year: int, ycheck: list, mcheck: list, 
     df['title'] = df['title'].str.lower()
     df = df[df.title.str.contains(word)].copy()
 
-
-    month_list = pd.to_datetime(df[pd.to_datetime(
-        df['fecha_creacion']).dt.year == int(year)]['fecha_creacion']).dt.month.unique()
-    if month not in month_list:
-        month = month_list[0]
+    # month_list = pd.to_datetime(df[pd.to_datetime(
+    #     df['fecha_creacion']).dt.year == int(year)]['fecha_creacion']).dt.month.unique()
+    # if month not in month_list:
+    #     month = month_list[0]
     df_wc = df.copy()
-    try:
-        df_wc['fecha_creacion'] = pd.to_datetime(df_wc['fecha_creacion'])
-        df_wc.set_index('fecha_creacion', inplace=True)
-    except:
-        pass
-    if ycheck == ['1']:
-        if mcheck == ['1']:
-            df_wc = df_wc.loc[str(year) + '-' + str(month)].copy()
-            df_bars_wc = get_services_counts(df_wc)
-            return plot_bars(df_bars_wc)
-        else:
-            df_wc = df_wc.loc[str(year)].copy()
-            df_bars_wc = get_services_counts(df_wc)
-            return plot_bars(df_bars_wc)
-    else:
-        df_bars_wc = get_services_counts(df_wc)
-        return plot_bars(df_bars_wc)
+
+    df_bars_wc = get_services_counts(df_wc)
+    return plot_bars(df_bars_wc)
+
+#     try:
+#         df_wc['fecha_creacion'] = pd.to_datetime(df_wc['fecha_creacion'])
+#         df_wc.set_index('fecha_creacion', inplace=True)
+#     except:
+#         pass
+#     if ycheck == ['1']:
+#         if mcheck == ['1']:
+#             df_wc = df_wc.loc[str(year) + '-' + str(month)].copy()
+#             df_bars_wc = get_services_counts(df_wc)
+# #            print(df_wc[df_wc.title.str.contains('conexion')])
+#             return plot_bars(df_bars_wc)
+#         else:
+#             df_wc = df_wc.loc[str(year)].copy()
+#             df_bars_wc = get_services_counts(df_wc)
+#             return plot_bars(df_bars_wc)
+#     else:
+#         df_bars_wc = get_services_counts(df_wc)
+#         return plot_bars(df_bars_wc)
