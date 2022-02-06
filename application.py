@@ -14,6 +14,7 @@ import mysql.connector
 import pandas as pd
 import plotly.express as px
 from flask import Flask
+import unidecode
 
 # scripts
 from dist import dist_layout, show_distribution
@@ -56,7 +57,7 @@ server = Flask(__name__)
 # app
 app = dash.Dash(
     __name__,
-    external_stylesheets=[dbc.themes.UNITED],
+    external_stylesheets=[dbc.themes.LUX],
 )
 application = app.server
 
@@ -208,6 +209,7 @@ def update_mcheck(ycheck):
 @app.callback(
     Output('wc_output', 'src'),
     Output('wc_table', 'data'),
+    Output('bars_wc', 'figure'),
     Output('year_dropdown', 'disabled'),
     Output('month_dropdown', 'disabled'),
     Output('ticket_qty', 'children'),
@@ -225,9 +227,13 @@ def update_mcheck(ycheck):
 def update_wc(min, max, month, year, ycheck, mcheck, stop_words_button,sw_button, stop_words, sw_query):
     sw = set(stop_words.replace(' ', '').split(','))
     month_list = pd.to_datetime(df[pd.to_datetime(df['fecha_creacion']).dt.year == int(year)]['fecha_creacion']).dt.month.unique()
+
     if month not in month_list:
         month = month_list[0]
     df_wc = df.copy()
+
+    df_wc['title'] = df_wc['title'].str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8')
+
     try:
         df_wc['fecha_creacion'] = pd.to_datetime(df_wc['fecha_creacion'])
         df_wc.set_index('fecha_creacion', inplace=True)
@@ -240,22 +246,29 @@ def update_wc(min, max, month, year, ycheck, mcheck, stop_words_button,sw_button
             sw_table = wc_table_out(df_wc, sw_query)
             ticket_qty = 'Encontrados ' + str(len(sw_table)) + ' tickets'
 
-            return graph, sw_table, False, False, ticket_qty
+            graph_bar = build_plot_wc(sw_query, month, year, ycheck, mcheck, df_wc)
+
+            return graph, sw_table, graph_bar, False, True, ticket_qty
         else:
             df_wc = df_wc.loc[str(year)].copy()
             graph = my_wordcloud(df_wc, min, max, sw)
             sw_table = wc_table_out(df_wc, sw_query)
             ticket_qty = 'Encontrados ' + str(len(sw_table)) + ' tickets'
 
-            return graph, sw_table, False, True, ticket_qty
+            graph_bar = build_plot_wc(sw_query, month, year, ycheck, mcheck, df_wc)
+
+            return graph, sw_table, graph_bar, False, True, ticket_qty
     else:
         graph = my_wordcloud(df_wc, min, max, sw)
         sw_table = wc_table_out(df_wc, sw_query)
         ticket_qty = 'Encontrados ' + str(len(sw_table)) + ' tickets'
 
-        return graph, sw_table, True, True, ticket_qty
+        graph_bar = build_plot_wc(sw_query, month, year, ycheck, mcheck, df_wc)
+
+        return graph, sw_table, graph_bar, False, True, ticket_qty
 
 def wc_table_out(df_wc, sw_query):
+            df_wc['title'] = df_wc['title'].str.lower()
             sw_table = df_wc.loc[df_wc['title'].str.contains(sw_query, case=False), :]
             sw_table = sw_table[['title', 'ticket_id', 'ticket_numero', 'servicio']]
             sw_table['ticket_id'] = sw_table['ticket_id'].astype(str)
@@ -267,18 +280,18 @@ def wc_table_out(df_wc, sw_query):
             return sw_table
 
 # -------------------------------Bar plot WC----------------------------------
-@app.callback(
-    Output('bars_wc', 'figure'),
-    [Input('bars_wc_button', 'n_clicks'),
-     Input('month_dropdown', 'value'),
-     Input('year_dropdown', 'value'),
-     Input('year_check', 'value'),
-     Input('month_check', 'value')],
-     State('bars_wc_text', 'value')
-)
-def plot_bars_wc_layout(bars_wc_button, m , y, yc , mc, txt):
-    graph = build_plot_wc(txt, m, y, yc, mc, df)
-    return graph
+# @app.callback(
+#     Output('bars_wc', 'figure'),
+#     [Input('bars_wc_button', 'n_clicks'),
+#      Input('month_dropdown', 'value'),
+#      Input('year_dropdown', 'value'),
+#      Input('year_check', 'value'),
+#      Input('month_check', 'value')],
+#      State('bars_wc_text', 'value')
+# )
+# def plot_bars_wc_layout(bars_wc_button, m , y, yc , mc, txt):
+#     graph = build_plot_wc(txt, m, y, yc, mc, df)
+#     return graph
 
 #------------------------------------------------------------------------------
 
