@@ -248,7 +248,7 @@ def update_wc(min, max, month, year, ycheck, mcheck, stop_words_button,sw_button
 
             graph_bar = build_plot_wc(sw_query, month, year, ycheck, mcheck, df_wc)
 
-            return graph, sw_table, graph_bar, False, True, ticket_qty
+            return graph, sw_table, graph_bar, False, False, ticket_qty
         else:
             df_wc = df_wc.loc[str(year)].copy()
             graph = my_wordcloud(df_wc, min, max, sw)
@@ -265,7 +265,7 @@ def update_wc(min, max, month, year, ycheck, mcheck, stop_words_button,sw_button
 
         graph_bar = build_plot_wc(sw_query, month, year, ycheck, mcheck, df_wc)
 
-        return graph, sw_table, graph_bar, False, True, ticket_qty
+        return graph, sw_table, graph_bar, True, True, ticket_qty
 
 def wc_table_out(df_wc, sw_query):
             df_wc['title'] = df_wc['title'].str.lower()
